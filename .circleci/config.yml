@@ -121,7 +121,7 @@ jobs:
       - restore_cache:
           keys: [frontend-build]
       - run:
-          name: Scan front-end
+          name: 
           command: |
             # Your code here
            
@@ -134,7 +134,7 @@ jobs:
       - restore_cache:
           keys: [backend-build]
       - run:
-          name: Scan back-end
+          name: 
           command: |
             # Your code here
             
