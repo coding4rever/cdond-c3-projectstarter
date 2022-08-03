@@ -119,12 +119,11 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-        
+          keys: [frontend-build]
       - run:
           name: Scan front-end
           command: |
             # Your code here
-            cd frontend
            
   
   scan-backend:
@@ -133,13 +132,11 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          
+          keys: [backend-build]
       - run:
           name: Scan back-end
           command: |
             # Your code here
-            cd backend
-            npm install
             
   # deploy-infrastructure:
   #   docker:
