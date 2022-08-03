@@ -36,16 +36,16 @@ orbs:
   slack: circleci/slack@4.4.4
 
 jobs:
-  # deploy:
-  #   docker:
-  #     # replace with your preferred image
-  #     - image: circleci/node:13.8.0
-  #   steps:
-  #     - checkout
-  #     - slack/notify:
-  #         channel: B03RN88CP7D #channel
-  #         event: fail
-  #         template: basic_fail_1
+  deploy:
+    docker:
+      # replace with your preferred image
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - slack/notify:
+          channel: B03RN88CP7D #channel
+          event: fail
+          template: basic_fail_1
 
 
 
@@ -115,7 +115,7 @@ jobs:
             npm run test
   scan-frontend:
     docker:
-      
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
@@ -126,11 +126,11 @@ jobs:
             # Your code here
             cd frontend
             npm install
-            
+            npm audit fix --audit-level=critical
   
   scan-backend:
     docker:
-      
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
@@ -142,7 +142,7 @@ jobs:
             cd backend
             npm install
             npm audit fix
-            
+            npm audit fix --audit-level=critical
   # deploy-infrastructure:
   #   docker:
   #     - image: amazon/aws-cli
@@ -499,10 +499,10 @@ workflows:
           requires: [build-frontend]
       - test-backend:
           requires: [build-backend]
-      - scan-frontend:
-          requires: [build-frontend]
-      - scan-backend:
-          requires: [build-backend]
+      # - scan-frontend:
+      #     requires: [build-frontend]
+      # - scan-backend:
+      #     requires: [build-backend]
       # - deploy:
       #     context: slack-secrets
       # - deploy-infrastructure:
