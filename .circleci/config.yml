@@ -125,8 +125,7 @@ jobs:
           command: |
             # Your code here
             cd frontend
-            npm install
-            npm audit fix --audit-level=critical
+           
   
   scan-backend:
     docker:
@@ -141,8 +140,7 @@ jobs:
             # Your code here
             cd backend
             npm install
-            npm audit fix
-            npm audit fix --audit-level=critical
+            
   # deploy-infrastructure:
   #   docker:
   #     - image: amazon/aws-cli
@@ -499,10 +497,10 @@ workflows:
           requires: [build-frontend]
       - test-backend:
           requires: [build-backend]
-      # - scan-frontend:
-      #     requires: [build-frontend]
-      # - scan-backend:
-      #     requires: [build-backend]
+      - scan-frontend:
+          requires: [build-frontend]
+      - scan-backend:
+          requires: [build-backend]
       # - deploy:
       #     context: slack-secrets
       # - deploy-infrastructure:
