@@ -32,24 +32,24 @@ commands:
               npm install
               npm run migration:revert
             fi
-orbs: 
-  slack: circleci/slack@4.4.4
+# orbs: 
+#   slack: circleci/slack@4.4.4
 
-jobs:
-  deploy:
-    docker:
-      # replace with your preferred image
-      - image: circleci/node:13.8.0
-    steps:
-      - checkout
-      - slack/notify:
-          channel: B03RN88CP7D #channel
-          event: fail
-          template: basic_fail_1
+# jobs:
+#   deploy:
+#     docker:
+#       # replace with your preferred image
+#       - image: circleci/node:13.8.0
+#     steps:
+#       - checkout
+#       - slack/notify:
+#           channel: B03RN88CP7D #channel
+#           event: fail
+#           template: basic_fail_1
 
 
 
-    build-frontend:
+  build-frontend:
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -113,20 +113,24 @@ jobs:
             cd backend
             npm install
             npm run test
+
   scan-frontend:
     docker:
       - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
-          keys: [frontend-build]
+          keys: [scanfrontend-test]
       - run:
-          name: Scan front-end
+          name: Scan-Frontend
           command: |
             # Your code here
             cd frontend
             npm install
-            npm audit fix --audit-level=critical
+            npm audit --audit-level=critical
+      - save_cache: 
+            paths: [frontend/node_modules]
+            key: scanfrontend-test 
   
   scan-backend:
     docker:
@@ -134,15 +138,18 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [backend-build]
+          keys: [scanbackend-test]
       - run:
-          name: Scan back-end
+          name: Scan-Backend
           command: |
             # Your code here
             cd backend
             npm install
-            npm audit fix
-            npm audit fix --audit-level=critical
+            # npm install oauth-sign@^0.9.0
+            npm audit --audit-level=critical
+      - save_cache:
+        paths: [backend/node_modules]
+        key: scanbackend-test
 
   # deploy-infrastructure:
   #   docker:
