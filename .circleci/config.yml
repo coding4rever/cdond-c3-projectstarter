@@ -119,38 +119,30 @@ commands:
     steps:
       - checkout
       - restore_cache:
-          keys: [scanfrontend-test]
+          keys: [frontend-build]
       - run:
-          name: Scan-Frontend
+          name: Scan front-end
           command: |
             # Your code here
             cd frontend
             npm install
-            npm audit fix --audit-level=critical --force
-             npm audit --audit-level=critical
-         - save_cache:
-          paths: [frontend/node_modules]
-          key: scanfrontend-test
-
+            npm audit fix --audit-level=critical
+  
   scan-backend:
     docker:
       - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
-          keys: [scanbackend-test]
+          keys: [backend-build]
       - run:
-          name: Scan-Backend
+          name: Scan back-end
           command: |
             # Your code here
             cd backend
             npm install
-             npm audit fix --audit-level=critical --force
-             npm audit fix --audit-level=critical --force
-             npm audit  --audit-level=critical 
-         - save_cache:
-          paths: [backend/node_modules]
-          key: scanbackend-test         
+            npm audit fix
+            npm audit fix --audit-level=critical
 
   # deploy-infrastructure:
   #   docker:
