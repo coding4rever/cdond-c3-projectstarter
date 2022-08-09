@@ -1,10 +1,22 @@
 version: 2.1
 
 commands:
+  install_ansible:
+    description: Install Ansible
+    steps:
+      - run:
+          name: Install Ansible
+          command: |
+            sudo apt update
+            sudo apt install software-properties-common -y
+            sudo add-apt-repository --yes --update ppa:ansible/ansible
+            sudo apt install ansible -y
+
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
     parameters:
       workflow_id:
+        default: "${CIRCLE_WORKFLOW_ID:0:7}"
         type: string
     steps:
       - run:
@@ -14,12 +26,14 @@ commands:
             echo "Destroying environment: << parameters.workflow_id >> "
             aws s3 rm s3://newudapeoplefrontend<< parameters.workflow_id >> --recursive
             aws cloudformation delete-stack --stack-name udapeople-backend-<< parameters.workflow_id >> 
-            aws cloudformation delete-stack --stack-name udapeople-frontend-<< parameters.workflow_id >> 
+            aws cloudformation delete-stack --stack-name udapeople-frontend-<< parameters.workflow_id >>
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
     parameters:
       workflow_id:
-        type: string     
+        default: "${CIRCLE_WORKFLOW_ID:0:7}"
+        # default: "${CIRCLE_WORKFLOW_ID:0:7}"
+        type: string
     steps:
       - run:
           name: Revert migrations
@@ -29,12 +43,12 @@ commands:
             echo $SUCCESS
             if(( $SUCCESS == 1 )); 
             then
-              cd backend
+              cd ~/project/backend
+              # cd ~/project/backend
               # npm install
               npm run migration:revert
             fi
-     
-            
+
 jobs:
   build-frontend:
     docker:
@@ -72,7 +86,7 @@ jobs:
 
   test-frontend:
     docker:
-      - image: circleci/node:13.8.0  
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
@@ -86,10 +100,10 @@ jobs:
       - save_cache:
           paths: [frontend/node_modules]
           key: test-frontend
-                
+
   test-backend:
     docker:
-      - image: circleci/node:13.8.0  
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
@@ -103,15 +117,15 @@ jobs:
       - save_cache:
           paths: [backend/node_modules]
           key: test-backend
-            
+
   scan-frontend:
     docker:
-      - image: circleci/node:13.8.0  
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
           keys: [scan-frontend]
-      - run: 
+      - run:
           name: run frontend scan
           command: |
             cd frontend
@@ -123,7 +137,7 @@ jobs:
 
   scan-backend:
     docker:
-      - image: circleci/node:13.8.0  
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
@@ -142,7 +156,7 @@ jobs:
     docker:
       - image: amazon/aws-cli
     steps:
-      - checkout 
+      - checkout
       - run:
           name: Install dependencies
           command: |
@@ -175,34 +189,56 @@ jobs:
           paths:
             - .circleci/ansible/*
       - destroy-environment:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}    
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
-  # configure-infrastructure:
-  #   docker:
-  #     - image: python:3.7-alpine3.11
-  #   steps:
-  #     - checkout
-  #     - add_ssh_keys:
-  #         fingerprints: ["5b:c5:f4:f2:62:14:85:0e:ed:7f:ec:76:f1:64:11:ac"] 
-  #     - attach_workspace:
-  #         at: .
-  #     - run: 
-  #         name: View content of inventory.txt
-  #         command: cat .circleci/ansible/inventory.txt
-  #     - run:
-  #         name: Install dependencies
-  #         command: |
-  #           apk add --update ansible
-  #           pip install awscli
-  #           aws --version
-  #     - run:
-  #         name: Configure server
-  #         command: | 
-  #           cd .circleci/ansible
-  #           ansible-playbook -i inventory.txt configure-server.yml
-  #     - destroy-environment:
-  #         workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}  
-   
+  configure-infrastructure:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - "3c:77:9e:1d:85:a4:e0:a6:18:42:dd:5d:a1:7d:96:6b"
+      - attach_workspace:
+          at: ~/
+
+      - install_ansible
+
+      - run:
+          name: Configure server
+          command: |
+            cd .circleci/ansible
+            cat inventory.txt
+
+            ansible-playbook -i inventory.txt configure-server.yml
+      - destroy-environment
+
+      # - run:
+      #     name: Configure server
+      #     command: |
+      #       cd .circleci/ansible
+      #       cat inventory.txt
+
+      #       ansible-playbook -i inventory.txt configure-server.yml
+      # - destroy-environment
+
+      # - run:
+      #     name: View content of inventory.txt
+      #     command: cat .circleci/ansible/inventory.txt
+      # - run:
+      #     name: Install dependencies
+      #     command: |
+      #       apk add --update ansible
+      #       pip install awscli
+      #       aws --version
+      # - run:
+      #     name: Configure server
+      #     command: |
+      #       cd .circleci/ansible
+      #       ansible-playbook -i inventory.txt configure-server.yml
+      # - destroy-environment:
+      #     workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+
   # run-migrations:
   #   docker:
   #     - image: circleci/node:13.8.0
@@ -230,9 +266,9 @@ jobs:
   #           then
   #             sudo apt-get update && sudo apt-get install -y ca-certificates
   #             curl --insecure   https://kvdb.io/HQK5fBvZtJtBDdBURXK1sD/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
-  #           fi 
+  #           fi
   #     - destroy-environment:
-  #         workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}       
+  #         workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   # deploy-frontend:
   #   docker:
@@ -272,8 +308,8 @@ jobs:
   #     - destroy-environment:
   #         workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
   #     - revert-migrations:
-  #         workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}         
-                    
+  #         workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+
   # deploy-backend:
   #   docker:
   #     - image: python:3.7-alpine3.11
@@ -283,7 +319,7 @@ jobs:
   #         fingerprints: ["5b:c5:f4:f2:62:14:85:0e:ed:7f:ec:76:f1:64:11:ac"]
   #     - attach_workspace:
   #         at: .
-  #     - run: 
+  #     - run:
   #         name: View content of inventory.txt
   #         command: cat .circleci/ansible/inventory.txt
   #     - run:
@@ -305,13 +341,13 @@ jobs:
   #           cat inventory.txt
   #           ansible-playbook -i inventory.txt deploy-backend.yml -vv
   #     - destroy-environment:
-  #         workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}    
+  #         workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
   #     - revert-migrations:
   #         workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   # smoke-test:
   #   docker:
-  #     - image: python:3.7-alpine3.11 
+  #     - image: python:3.7-alpine3.11
   #   steps:
   #     - checkout
   #     - attach_workspace:
@@ -331,7 +367,7 @@ jobs:
   #             --output text
   #           )
   #           echo "${BACKEND_IP}"
-  #           export API_URL="http://${BACKEND_IP}:3030" 
+  #           export API_URL="http://${BACKEND_IP}:3030"
   #           echo "${API_URL}"
   #           if curl "${API_URL}/api/status" | grep "ok"
   #           then
@@ -342,7 +378,7 @@ jobs:
   #     - run:
   #         name: Frontend smoke test.
   #         command: |
-  #           URL="http://newudapeoplefrontend${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-1.amazonaws.com/#/employees"            
+  #           URL="http://newudapeoplefrontend${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-1.amazonaws.com/#/employees"
   #           if curl -s ${URL} | grep "Welcome"
   #           then
   #             return 0
@@ -350,9 +386,9 @@ jobs:
   #             return 1
   #           fi
   #     - destroy-environment:
-  #         workflow_id: ${CIRCLE_WORKFLOW_ID:0:7} 
+  #         workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
   #     - revert-migrations:
-  #         workflow_id: ${CIRCLE_WORKFLOW_ID:0:7} 
+  #         workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   # cloudfront-update:
   #   docker:
@@ -390,7 +426,7 @@ jobs:
   #           echo OldWorkflowID: "${OldWorkflowID}"
   #           echo CIRCLE_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
   #           export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
-  #             --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
+  #             --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
   #           echo Stack names: "${STACKS[@]}"
   #     - run:
   #         name: Remove old stacks and files
@@ -403,8 +439,6 @@ jobs:
   #           else
   #             echo "$OldWorkflowID==$CurrentWorkflowID => all good."
   #           fi
-      
-            
 
 workflows:
   autodeploy:
