@@ -480,7 +480,11 @@ jobs:
       - add_ssh_keys:
           fingerprints: ["3c:77:9e:1d:85:a4:e0:a6:18:42:dd:5d:a1:7d:96:6b"] 
       - attach_workspace:
-          at: .
+          at: ~/
+
+      - install_nodejs
+      - install_awscli
+      - install_ansible
       - run: 
           name: View content of inventory.txt
           command: cat .circleci/ansible/inventory.txt
