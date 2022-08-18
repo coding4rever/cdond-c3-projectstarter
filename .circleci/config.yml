@@ -478,7 +478,7 @@ jobs:
     steps:
       - checkout
       - add_ssh_keys:
-          fingerprints: ["81:c5:bd:25:2f:c2:e7:b4:23:c3:11:ab:4e:8c:d2:11"] 
+          fingerprints: ["3c:77:9e:1d:85:a4:e0:a6:18:42:dd:5d:a1:7d:96:6b"] 
       - attach_workspace:
           at: .
       - run: 
@@ -506,7 +506,7 @@ jobs:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}    
       - revert-migrations:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-          
+
   # smoke-test:
   #   docker:
   #     - image: python:3.7-alpine3.11
