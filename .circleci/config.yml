@@ -2,7 +2,7 @@ version: 2.1
 
 commands:
   install_awscli:
-    description: Install AWS cli
+    description: Install AWS  cli
     steps:
       - run:
           name: Install AWS cli
@@ -504,79 +504,42 @@ jobs:
   #     - revert-migrations:
   #         workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
-  # deploy-backend:
-  #   docker:
-  #     - image: python:3.7-alpine3.11
-  #   steps:
-  #     - checkout
-  #     - add_ssh_keys:
-  #         fingerprints: ["3c:77:9e:1d:85:a4:e0:a6:18:42:dd:5d:a1:7d:96:6b"]
-  #     - attach_workspace:
-  #         at: .
-  #     - run:
-  #         name: View content of inventory.txt
-  #         command: cat .circleci/ansible/inventory.txt
-  #     - run:
-  #         name: Install dependencies
-  #         command: |
-  #           apk add --update ansible curl rsync openssh nodejs npm
-  #           pip install awscli
-  #           aws --version
-  #     - run:
-  #         name: Deploy backend
-  #         command: |
-  #           cd backend
-  #           npm i
-  #           npm run build
-  #           cd ..
-  #           tar -C backend -czvf artifact.tar.gz .
-  #           cd .circleci/ansible
-  #           echo "Contents  of the inventory.txt file is -------"
-  #           cat inventory.txt
-  #           ansible-playbook -i inventory.txt deploy-backend.yml -vv
-  #     - destroy-environment:
-  #         workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-  #     - revert-migrations:
-  #         workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+  deploy-backend:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints: ["3c:77:9e:1d:85:a4:e0:a6:18:42:dd:5d:a1:7d:96:6b"]
+      - attach_workspace:
+          at: .
+      - run:
+          name: View content of inventory.txt
+          command: cat .circleci/ansible/inventory.txt
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update ansible curl rsync openssh nodejs npm
+            pip install awscli
+            aws --version
+      - run:
+          name: Deploy backend
+          command: |
+            cd backend
+            npm i
+            npm run build
+            cd ..
+            tar -C backend -czvf artifact.tar.gz .
+            cd .circleci/ansible
+            echo "Contents  of the inventory.txt file is -------"
+            cat inventory.txt
+            ansible-playbook -i inventory.txt deploy-backend.yml -vv
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - revert-migrations:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
-
-deploy-backend:
-  docker:
-    - image: python:3.7-alpine3.11
-  steps:
-    - checkout
-    - add_ssh_keys:
-        fingerprints: ["3c:77:9e:1d:85:a4:e0:a6:18:42:dd:5d:a1:7d:96:6b"]
-    - attach_workspace:
-        at: .
-    - run: 
-        name: View content of inventory.txt
-        command: cat .circleci/ansible/inventory.txt
-    - run:
-        name: Install dependencies
-        command: |
-          apk add --update ansible curl rsync openssh nodejs npm
-          pip install awscli
-          aws --version
-    - run:
-        name: Deploy backend
-        command: |
-          cd backend
-          npm i
-          npm run build
-          cd ..
-          tar -C backend -czvf artifact.tar.gz .
-          cd .circleci/ansible
-          echo "Contents  of the inventory.txt file is -------"
-          cat inventory.txt
-          ansible-playbook -i inventory.txt deploy-backend.yml
-    - destroy-environment:
-        workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}    
-    - revert-migrations:
-        workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-
-  
- # smoke-test:
+  # smoke-test:
   #   docker:
   #     - image: python:3.7-alpine3.11
   #   steps:
