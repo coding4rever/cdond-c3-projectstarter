@@ -35,7 +35,7 @@ commands:
           when: on_fail
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            SUCCESS=$(curl --insecure  https://kvdb.io/3T1mChsSVmhwruM4S9Hz/migration_<< parameters.workflow_id >>)
+            SUCCESS=$(curl --insecure  https://kvdb.io/RcFU3tS2ZcMQAA6nyKHhYG/migration_<< parameters.workflow_id >>)
             # Logic for reverting the database state
             if (( $SUCCESS == 1 ));
             then
@@ -170,40 +170,45 @@ jobs:
 
   deploy-infrastructure:
     docker:
+      # Docker image here that supports AWS CLI
       - image: amazon/aws-cli
     steps:
+      # Checkout code from git
       - checkout
       - run:
-          name: Install dependencies
-          command: |
-            yum install -y tar gzip curl
+          name: install tar and gzip
+          command: yum install tar gzip -y
+      - attach_workspace:
+          at: ~/
       - run:
           name: Ensure back-end infrastructure exists
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/backend.yml \
-              --stack-name udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7} \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  \
-              --tags project=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}
+              --tags project=udapeople \
+              --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
       - run:
           name: Ensure front-end infrastructure exist
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
+              --tags project=udapeople \
               --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7} \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  \
-              --tags project=udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
       - run:
           name: Add back-end ip to ansible inventory
           command: |
-            aws ec2 describe-instances \
-              --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --filters "Name=tag:project,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --output text >> .circleci/ansible/inventory.txt
+            echo $(aws ec2 describe-instances \
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --filters Name=tag:aws:cloudformation:stack-name,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7} \
+            --output text) >> ~/project/.circleci/ansible/inventory.txt
+            cat ~/project/.circleci/ansible/inventory.txt
       - persist_to_workspace:
-          root: .
+          root: ~/
           paths:
-            - .circleci/ansible/*
+            - project/.circleci/ansible/inventory.txt
+      # Here's where you will add some code to rollback on failure
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
@@ -216,7 +221,7 @@ jobs:
       - checkout
       # Add ssh keys with fingerprint
       - add_ssh_keys:
-          fingerprints: ["3c:77:9e:1d:85:a4:e0:a6:18:42:dd:5d:a1:7d:96:6b"]
+          fingerprint: ["02:2b:53:b7:a0:8f:13:a5:4c:0d:a0:ed:90:5d:e1:f9"]
       # attach workspace
       - run:
           name: Install dependencies
@@ -263,7 +268,7 @@ jobs:
             if grep -q "migrations" ~/project/backend/migrations_dump.txt
             then
               # If you are using memstash.io, generate the token "7933fe63-4687-4fa1-8426-aa25aa1730ec" on the website
-              curl https://kvdb.io/3T1mChsSVmhwruM4S9Hz/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
+              curl https://kvdb.io/RcFU3tS2ZcMQAA6nyKHhYG/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             fi
       - save_cache:
           paths: [frontend/node_modules]
@@ -323,7 +328,7 @@ jobs:
       - checkout
       # Add ssh keys with fingerprint
       - add_ssh_keys:
-          fingerprints: ["3c:77:9e:1d:85:a4:e0:a6:18:42:dd:5d:a1:7d:96:6b"]
+          fingerprint: ["02:2b:53:b7:a0:8f:13:a5:4c:0d:a0:ed:90:5d:e1:f9"]
       - restore_cache:
           keys: [backend-build]
       - run:
@@ -448,7 +453,7 @@ jobs:
             # your code here
             yum install tar gzip npm nodejs -y
       - run:
-          name: Update cloudfront distributions
+          name: Update cloudfront distribution
           command: |
             # your code here
              export OldWorkflowID=$(aws cloudformation list-exports \
@@ -506,7 +511,7 @@ jobs:
     steps:
       - checkout
       - add_ssh_keys:
-          fingerprints: ["3c:77:9e:1d:85:a4:e0:a6:18:42:dd:5d:a1:7d:96:6b"]
+          fingerprint: ["02:2b:53:b7:a0:8f:13:a5:4c:0d:a0:ed:90:5d:e1:f9"]
       - run:
           name: Install dependencies
           command: |
@@ -541,7 +546,7 @@ workflows:
           requires: [test-frontend, test-backend, scan-frontend, scan-backend]
           filters:
             branches:
-              only: [master]
+              only: [main]
       - configure-infrastructure:
           requires: [deploy-infrastructure]
       - run-migrations:
