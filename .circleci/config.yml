@@ -453,7 +453,7 @@ jobs:
             # your code here
             yum install tar gzip npm nodejs -y
       - run:
-          name: Update cloudfront distribution
+          name: Update cloudfront distributions
           command: |
             # your code here
              export OldWorkflowID=$(aws cloudformation list-exports \
