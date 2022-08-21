@@ -35,7 +35,7 @@ commands:
           when: on_fail
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            SUCCESS=$(curl --insecure  https://kvdb.io/RcFU3tS2ZcMQAA6nyKHhYG/migration_<< parameters.workflow_id >>)
+            SUCCESS=$(curl --insecure  https://kvdb.io/3T1mChsSVmhwruM4S9Hz/migration_<< parameters.workflow_id >>)
             # Logic for reverting the database state
             if (( $SUCCESS == 1 ));
             then
@@ -221,7 +221,7 @@ jobs:
       - checkout
       # Add ssh keys with fingerprint
       - add_ssh_keys:
-          fingerprint: ["02:2b:53:b7:a0:8f:13:a5:4c:0d:a0:ed:90:5d:e1:f9"]
+          fingerprints: ["3c:77:9e:1d:85:a4:e0:a6:18:42:dd:5d:a1:7d:96:6b"]
       # attach workspace
       - run:
           name: Install dependencies
@@ -268,7 +268,7 @@ jobs:
             if grep -q "migrations" ~/project/backend/migrations_dump.txt
             then
               # If you are using memstash.io, generate the token "7933fe63-4687-4fa1-8426-aa25aa1730ec" on the website
-              curl https://kvdb.io/RcFU3tS2ZcMQAA6nyKHhYG/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
+              curl https://kvdb.io/3T1mChsSVmhwruM4S9Hz/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             fi
       - save_cache:
           paths: [frontend/node_modules]
@@ -328,7 +328,7 @@ jobs:
       - checkout
       # Add ssh keys with fingerprint
       - add_ssh_keys:
-          fingerprint: ["02:2b:53:b7:a0:8f:13:a5:4c:0d:a0:ed:90:5d:e1:f9"]
+          fingerprints: ["3c:77:9e:1d:85:a4:e0:a6:18:42:dd:5d:a1:7d:96:6b"]
       - restore_cache:
           keys: [backend-build]
       - run:
@@ -511,7 +511,7 @@ jobs:
     steps:
       - checkout
       - add_ssh_keys:
-          fingerprint: ["02:2b:53:b7:a0:8f:13:a5:4c:0d:a0:ed:90:5d:e1:f9"]
+          fingerprints: ["3c:77:9e:1d:85:a4:e0:a6:18:42:dd:5d:a1:7d:96:6b"]
       - run:
           name: Install dependencies
           command: |
