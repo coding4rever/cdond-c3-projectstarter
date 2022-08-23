@@ -243,36 +243,31 @@ jobs:
       # Here's where you will add some code to rollback on failure
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+          
 
   configure-infrastructure:
     docker:
-      # Docker image here that supports Ansible
       - image: cimg/base:stable
     steps:
-      # Checkout code from git
       - checkout
-      # Add ssh keys with fingerprint
       - add_ssh_keys:
-          fingerprints: ["3c:77:9e:1d:85:a4:e0:a6:18:42:dd:5d:a1:7d:96:6b"]
-      # attach workspace
-      - run:
-          name: Install dependencies
-          command: |
-            apk add --update --no-cache tar gzip ansible aws-cli openssh
+          fingerprints:
+            - "3c:77:9e:1d:85:a4:e0:a6:18:42:dd:5d:a1:7d:96:6b"
       - attach_workspace:
           at: ~/
+
+      - install_ansible
+      - install_awscli
+
       - run:
           name: Configure server
           command: |
             cd .circleci/ansible
+            cat inventory.txt
+
             ansible-playbook -i inventory.txt configure-server.yml
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - project/.circleci/ansible/inventory.txt
-      # Here's where you will add some code to rollback on failure
-      - destroy-environment:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      - destroy-environment
+
 
   run-migrations:
     docker:
