@@ -32,7 +32,6 @@ commands:
             sudo add-apt-repository --yes --update ppa:ansible/ansible
             sudo apt install ansible -y
 
-
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
     parameters:
@@ -243,7 +242,6 @@ jobs:
       # Here's where you will add some code to rollback on failure
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-          
 
   configure-infrastructure:
     docker:
@@ -267,7 +265,6 @@ jobs:
 
             ansible-playbook -i inventory.txt configure-server.yml
       - destroy-environment
-
 
   run-migrations:
     docker:
