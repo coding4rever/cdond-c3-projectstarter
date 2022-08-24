@@ -346,28 +346,25 @@ jobs:
 
   deploy-backend:
     docker:
-      # Docker image here that supports Ansible
-      - image: python:3.10-alpine3.16
+      - image: python:3.7-alpine3.11
     steps:
-      # Checkout code from git
       - checkout
-      # Add ssh keys with fingerprint
       - add_ssh_keys:
           fingerprints: ["3c:77:9e:1d:85:a4:e0:a6:18:42:dd:5d:a1:7d:96:6b"]
-      - restore_cache:
-          keys: [backend-build]
+      - attach_workspace:
+          at: .
+      - run:
+          name: View content of inventory.txt
+          command: cat .circleci/ansible/inventory.txt
       - run:
           name: Install dependencies
           command: |
-            # your code here
-            apk add --update --no-cache tar gzip ansible aws-cli openssh nodejs npm curl
-      # attach workspace
-      - attach_workspace:
-          at: ~/
+            apk add --update ansible curl rsync openssh nodejs npm
+            pip install awscli
+            aws --version
       - run:
           name: Deploy backend
           command: |
-            # your code here
             cd backend
             npm i
             npm run build
@@ -390,15 +387,7 @@ jobs:
             cd .circleci/ansible
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
-            ansible-playbook -i inventory.txt deploy-backend.yml
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - project/backend
-      - save_cache:
-          paths: [backend/node_modules]
-          key: backend-build
-      # Here's where you will add some code to rollback on failure
+            ansible-playbook -i inventory.txt deploy-backend.yml -vv
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
       - revert-migrations:
