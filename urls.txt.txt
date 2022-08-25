@@ -1,7 +1,0 @@
-Provide a URL to your public GitHub repository [URL01]
-https://github.com/coding4rever/cdond-c3-projectstarter
-
-
-Public URL for your S3 Bucket [URL02]
-udapeople-a887ae2.s3.amazonaws.com/index.html#/employees
-
